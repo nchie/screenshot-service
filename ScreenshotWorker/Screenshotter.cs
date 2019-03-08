@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Screenshotter.Worker
+namespace Screenshot.Worker
 {
     class Screenshotter
     {

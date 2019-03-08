@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ScreenshotService.Messages;
+using Screenshot.Messages;
 
-namespace ScreenshotService.Models
+namespace Screenshot.Service.Models
 {
     public class ScreenshotRequest
     {

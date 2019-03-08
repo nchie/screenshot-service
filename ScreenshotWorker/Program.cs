@@ -1,8 +1,10 @@
 ﻿using PuppeteerSharp;
 using System;
 using MassTransit;
+using Screenshot.Messages;
+using MassTransit.Util;
 
-namespace Screenshotter.Worker
+namespace Screenshot.Worker
 {
     class Program
     {
@@ -16,17 +18,16 @@ namespace Screenshotter.Worker
                     h.Username("guest");
                     h.Password("guest");
                 });
-                //var host = cfg.Host(new Uri("rabbitmq://localhost/"), h =>
-                //{
-                //    h.Username("guest");
-                //    h.Password("guest");
-                //});
 
-                cfg.ReceiveEndpoint(host, "screenshot_request2", e =>
+                cfg.ReceiveEndpoint(host, "submit-screenshot-request", e =>
                 {
+                    e.PrefetchCount = 16;
+                    //e.UseMessageRetry(x => x.Interval(2, 100));
                     e.Consumer<ScreenshotRequestConsumer>();
-                    e.Consumer(() => new ScreenshotRequestConsumer());
                 });
+
+                EndpointConvention.Map<ScreenshotSaved>(host.Address.AppendToPath("screenshot-saved"));
+                EndpointConvention.Map<DownloadScreenshots>(host.Address.AppendToPath("submit-screenshot-request"));
             });
 
             bus.Start();

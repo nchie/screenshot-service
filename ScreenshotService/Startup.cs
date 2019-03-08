@@ -7,12 +7,15 @@ using MassTransit.Util;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MassTransit.ExtensionsDependencyInjectionIntegration;
+using Screenshot.Messages;
 
-namespace ScreenshotService
+namespace Screenshot.Service
 {
     public class Startup
     {
@@ -26,19 +29,33 @@ namespace ScreenshotService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMassTransit(x =>
+            {
+                x.AddConsumer<ScreenshotSavedConsumer>();
 
-            var bus = Bus.Factory.CreateUsingRabbitMq(cfg =>
-                cfg.Host("localhost", "/", h =>
+                x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
                 {
-                    h.Username("guest");
-                    h.Password("guest");
-                })
-            );
+                    var host = cfg.Host("localhost", "/", h => { });
 
-            services.AddSingleton<IBusControl>(bus);
-            services.AddSingleton<IBus>(bus);
-            services.AddSingleton<IPublishEndpoint>(bus);
 
+                    cfg.ReceiveEndpoint(host, "screenshot-saved", e =>
+                    {
+                        e.PrefetchCount = 16;
+                        //e.UseMessageRetry(x => x.Interval(2, 100));
+
+                        e.Consumer<ScreenshotSavedConsumer>(provider);
+
+                    });
+
+                    EndpointConvention.Map<ScreenshotSaved>(host.Address.AppendToPath("screenshot-saved"));
+                    EndpointConvention.Map<DownloadScreenshots>(host.Address.AppendToPath("submit-screenshot-request"));
+                }));
+
+                // x.AddRequestClient<SubmitOrder>();
+            });
+            services.AddHostedService<BusService>();
+
+            services.AddDbContext<Context>(opt => opt.UseInMemoryDatabase("RequestDb"));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
@@ -49,10 +66,6 @@ namespace ScreenshotService
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            var bus = services.GetRequiredService<IBusControl>();
-            var busHandle = TaskUtil.Await(() => bus.StartAsync());
-
 
             app.UseMvc();
         }

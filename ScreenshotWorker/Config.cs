@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Screenshotter.Worker
+namespace Screenshot.Worker
 {
     public class Config
     {
