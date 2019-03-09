@@ -1,11 +1,40 @@
-version: '3'
+version: '3.7'
 services:
-    # web:
-    # build: .
+    worker:
+        build: ScreenshotWorker/.
+        environment:
+            - SCREENSHOT__MQ__HOST=rabbitmq
+            - SCREENSHOT__SCREENSHOTTER__OUTPUTDIRECTORY=/app/screenshots/
+            - SCREENSHOT__SCREENSHOTTER__PAGEWIDTH=1920
+            - SCREENSHOT__SCREENSHOTTER__PAGEHEIGHT=1080
+        volumes:
+            - ./screenshots/:/app/screenshots/
+        depends_on:
+            - rabbitmq
+    service:
+        build: ScreenshotService/.
+        environment:
+            - SCREENSHOT__MQ__HOST=rabbitmq
+        ports: 
+            - "8080:8080"
+        volumes:
+            - ./screenshots/:/app/screenshots/
+        depends_on:
+            - rabbitmq
     rabbitmq:
         image: "rabbitmq:3.7-management-alpine"
         ports:
             - "5672:5672"
             - "15672:15672"
+    nginx:
+        image: nginx
+        ports:
+            - "80:80"
+        volumes:
+            - ./screenshots/:/usr/share/nginx/screenshots/
+            - ./nginx.conf:/etc/nginx/nginx.conf
+
+volumes:
+  screenshots:
 
 

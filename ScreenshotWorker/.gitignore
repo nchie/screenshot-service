@@ -1,3 +1,6 @@
+screenshots/*
+!screenshots/.gitkeep
+
 *.swp
 *.*~
 project.lock.json
