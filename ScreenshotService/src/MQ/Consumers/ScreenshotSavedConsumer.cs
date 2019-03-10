@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using MassTransit;
@@ -7,21 +8,17 @@ using Screenshot.Service.Entity;
 
 namespace Screenshot.Service.MQ.Consumer
 {
-    public class ScreenshotSavedConsumer : IConsumer<ScreenshotSaved>
+    internal class ScreenshotSavedConsumer : IConsumer<ScreenshotSaved>
     {
         private ScreenshotContext _dbContext;
-        public ScreenshotSavedConsumer(ScreenshotContext dbContext)
+        private IRequestHandler _requestHandler;
+        public ScreenshotSavedConsumer(IRequestHandler requestHandler)
         {
-            _dbContext = dbContext;
+            _requestHandler = requestHandler;
         }
         public async Task Consume(ConsumeContext<ScreenshotSaved> context)
         {
-            // Find entry for screenshot which was saved
-            var screenshot = _dbContext.Screenshots.Single(e => e.RequestGuid == context.Message.Guid && e.Url == context.Message.Url);
-            screenshot.Path = context.Message.Filename;
-            screenshot.Status = "Success";
-
-            await _dbContext.SaveChangesAsync();
+            await _requestHandler.UpdateRequest(context.Message);
         }
     }
 }

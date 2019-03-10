@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <RootNamespace>Screenshotter.Worker</RootNamespace>
+    <RootNamespace>Screenshot.Worker</RootNamespace>
     <AssemblyName>ScreenshotWorker</AssemblyName>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>

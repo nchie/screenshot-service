@@ -22,8 +22,6 @@ namespace Screenshot.Worker
         public static async Task Main(string[] args)
         {
             await ConfigureHostBuilder(args).Build().RunAsync();
-            // //var screenshotter = new Screenshotter(".");
-            // //screenshotter.Screenshot("http://seboverflow.sebank.se/", "test.png").Wait();
         }
         static IHostBuilder ConfigureHostBuilder(string[] args)
         {
@@ -36,10 +34,11 @@ namespace Screenshot.Worker
                 })
                 .ConfigureServices((hostingContext, services) => {
                     var mqConfig = hostingContext.Configuration.GetSection("Mq").Get<MqConfiguration>();
-                    services.Configure<BrowserConfiguration>(hostingContext.Configuration.GetSection("Screenshotter"));
+                    services.Configure<BrowserConfiguration>(hostingContext.Configuration.GetSection("Browser"));
 
                     services.AddMq(mqConfig);
                     services.AddSingleton<IBrowser, PuppeteerBrowser>();
+                    services.AddScoped<IRequestHandler, RequestHandler>();
                     
                 })
                 .ConfigureLogging((hostingContext, logging) =>

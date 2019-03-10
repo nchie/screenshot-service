@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PuppeteerSharp;
 using System;
 using System.Collections.Generic;
@@ -14,8 +15,10 @@ namespace Screenshot.Worker.Browser
         private readonly string _outputDir;
         private PuppeteerSharp.Browser _browser;
         private IOptionsMonitor<BrowserConfiguration> _options;
-        public PuppeteerBrowser(IOptionsMonitor<BrowserConfiguration> optionsAccessor) 
+        private ILogger _logger;
+        public PuppeteerBrowser(IOptionsMonitor<BrowserConfiguration> optionsAccessor, ILogger<PuppeteerBrowser> logger) 
         {
+            _logger = logger;
             _options = optionsAccessor;
             _outputDir = _options.CurrentValue.OutputDirectory;
             // This can definitely fail and probably shouldn't be in a constructor, but...
@@ -27,6 +30,7 @@ namespace Screenshot.Worker.Browser
         }
         public async Task Screenshot(string uri, string outputFile)
         {
+            outputFile = Path.Combine(_outputDir, outputFile);
             var options = _options.CurrentValue;
             var page = await _browser.NewPageAsync();
 
@@ -36,8 +40,10 @@ namespace Screenshot.Worker.Browser
                 Width = options.PageWidth,
                 Height = options.PageHeight
             });
+            _logger.LogDebug($"Screenshotting url '{uri}' to file '{outputFile}'");
             // TODO: Async wait x seconds since the page might not display correctly right away?
-            await page.ScreenshotAsync(Path.Combine(_outputDir, outputFile));
+            await page.ScreenshotAsync(outputFile);
+            _logger.LogDebug($"Success, sending saved message.");
             await page.CloseAsync();
         }
     }

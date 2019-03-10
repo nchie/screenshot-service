@@ -34,6 +34,7 @@ namespace Screenshot.Service
             services.AddMq(mqConfig);
             services.AddDbContext<ScreenshotContext>(opt => opt.UseInMemoryDatabase("RequestDb"));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddScoped<IRequestHandler, RequestHandler>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider services)
@@ -43,6 +44,7 @@ namespace Screenshot.Service
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseStaticFiles();
             app.UseMvc();
         }
     }
