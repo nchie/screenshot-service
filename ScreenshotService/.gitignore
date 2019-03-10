@@ -1,4 +1,4 @@
-wwwroot/*
+wwwroot/screenshots/*
 !wwwroot/screenshots/.gitkeep
 
 *.swp
